@@ -1,0 +1,47 @@
+# What ports/sockets to listen on, and what options for them.
+<% params[:listen].each do |port, options| %>
+listen <%= port %>, <%= options %>
+<% end %>
+
+<% if params[:working_directory] %>
+working_directory '<%= params[:working_directory] %>'
+<% end %>
+
+# What the timeout for killing busy workers is, in seconds
+timeout <%= params[:worker_timeout] %>
+
+# Whether the app should be pre-loaded
+preload_app <%= params[:preload_app] %>
+
+# How many worker processes
+worker_processes <%= params[:worker_processes] %>
+
+<% if params[:before_fork] %>
+# What to do before we fork a worker
+before_fork do |server, worker|
+  <%= params[:before_fork] %>
+end
+
+<% end %>
+<% if params[:after_fork] %>
+# What to do after we fork a worker
+after_fork do |server, worker|
+  <%= params[:after_fork] %>
+end
+
+<% end %>
+<% if params[:pid] %>
+# Where to drop a pidfile
+pid '<%= params[:pid] %>'
+
+<% end %>
+<% if params[:stderr_path] %>
+# Where stderr gets logged
+stderr_path '<%= params[:stderr_path] %>'
+
+<% end %>
+<% if params[:stdout_path] %>
+# Where stdout gets logged
+stdout_path '<%= params[:stdout_path] %>'
+
+<% end %>

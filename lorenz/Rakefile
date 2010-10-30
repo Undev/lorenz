@@ -1,0 +1,102 @@
+require 'rubygems'
+require 'rake'
+
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name = "lorenz"
+    gem.summary = %Q{Lorenz}
+    gem.description = %Q{Lorenz}
+    gem.email = "ceo@prepor.ru"
+    gem.homepage = "http://github.com/prepor/lorenz"
+    gem.authors = ["Andrew Rudenko"]
+    gem.add_development_dependency "rspec", ">= 1.2.9"
+    gem.add_development_dependency "yard", ">= 0"
+    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+  end
+  Jeweler::GemcutterTasks.new
+rescue LoadError
+  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
+end
+
+# require 'spec/rake/spectask'
+# Spec::Rake::SpecTask.new(:spec) do |spec|
+#   spec.libs << 'lib' << 'spec'
+#   spec.spec_files = FileList['spec/**/*_spec.rb']
+# end
+# 
+# Spec::Rake::SpecTask.new(:rcov) do |spec|
+#   spec.libs << 'lib' << 'spec'
+#   spec.pattern = 'spec/**/*_spec.rb'
+#   spec.rcov = true
+# end
+
+# task :spec => :check_dependencies
+
+# task :default => :spec
+
+namespace :tools do
+  task :diff do
+    
+  end
+end
+
+task :env do
+  LIB_PATH = File.join(File.dirname(__FILE__))
+  $:.unshift File.join(LIB_PATH, 'lib')
+  require 'lorenz'
+  Lorenz.load File.join(LIB_PATH, 'test', 'recipes')
+end
+
+task :default => :test
+
+task :test => :env do  
+  require 'rainbow'
+  require 'lorenz/tools/versions_dsl'
+
+  TESTS_PATH = File.join(File.dirname(__FILE__), 'test')
+  DEFAULT_VERSIONS = Lorenz::Tools::VersionsDSL.new.load_from_file(File.join(TESTS_PATH, 'versions.rb')).versions
+  Lorenz.versions.data = DEFAULT_VERSIONS
+  
+  states = Lorenz::Tools::StatesDSL.new
+  Dir["test/states/**/*"].each do |file_path|
+    states.load_from_file File.expand_path(file_path)
+  end
+  errors = false
+  states.transitions.each do |k, transition|    
+    res, data = transition.run_and_assert
+    Lorenz.versions.data = DEFAULT_VERSIONS
+    if res
+      print ".".color(:green)
+    else
+      puts "\nFrom #{transition.from.name} to #{transition.to.name}".bright.underline
+      errors = true
+      puts "Error!".color(:red)
+      puts "Expected actions:".bright.underline
+      data[:expected].each { |a| puts "\t" + a }
+      puts "Actions:".bright.underline
+      data[:actions].each { |a| puts "\t" + a }
+      puts "Diff".bright.underline
+      puts "Plus:".bright.underline
+      data[:plus].each { |a| puts "\t" + a }
+      puts "Minus:".bright.underline
+      data[:minus].each { |a| puts "\t" + a }
+    end
+  end
+  puts
+  if errors
+    puts "Cases failed"
+    exit 1
+  else
+    puts "Cases success"
+  end
+end
+
+begin
+  require 'yard'
+  YARD::Rake::YardocTask.new
+rescue LoadError
+  task :yardoc do
+    abort "YARD is not available. In order to run yardoc, you must: sudo gem install yard"
+  end
+end

@@ -1,0 +1,6 @@
+%h2= @recipe.name
+
+%ol
+  - @recipe.node_list.nodes.each do |node|
+    %li
+      %pre= node.inspect

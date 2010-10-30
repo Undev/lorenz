@@ -1,0 +1,10 @@
+- if @state
+  %ol
+    - @state.nodes.each do |node|
+      %li
+        %pre= node.inspect
+        
+- else  
+  %p State is undefined
+
+  

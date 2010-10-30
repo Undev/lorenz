@@ -1,0 +1,68 @@
+# encoding: utf-8
+
+require 'rubygems'
+require 'erb'
+
+class Test < Thor
+  ROOT = File.dirname(__FILE__).freeze
+  REL  = /^#{Regexp.escape(ROOT + File::SEPARATOR)}/.freeze
+
+  desc 'erb[recipes]', 'Tests erb templates of specified or all recipes for its validity.'
+  method_options :force => :array
+  def erb(recipes = [])
+    valid = true
+    Dir.glob(File.expand_path(File.join("**/*.erb"), ROOT), File::FNM_DOTMATCH) do |file_path|
+      next if dots?(file_path)
+      rel_name = file_path.sub(REL, '')
+      next unless from_recipes?(rel_name, recipes)
+      unless system("sh -c 'erubis -x #{file_path} | ruby -c'")
+        $stderr.puts("#{rel_name}: Cannot be compiled")
+        valid = false
+      end
+    end
+    show_valid('erb templates', valid)
+  end
+
+  desc 'rb[recipes]', 'Tests rb files of specified or all recipes for its validity.'
+  method_options :force => :array
+  def rb(recipes = [])
+    valid = true
+    Dir.glob(File.expand_path(File.join("**/*.rb"), ROOT), File::FNM_DOTMATCH) do |file_path|
+      next if dots?(file_path)
+      rel_name = file_path.sub(REL, '')
+      next unless from_recipes?(rel_name, recipes)
+      unless system("ruby -c #{file_path}")
+        $stderr.puts("#{rel_name}: Cannot be compiled")
+        valid = false
+      end
+    end
+    show_valid('rb code', valid)
+  end
+
+  desc 'all[recipes]', 'Tests all files of specified or all recipes for its validity.'
+  method_options :force => :array
+  def all(recipes = [])
+    rb(recipes)
+    erb(recipes)
+  end
+
+
+private
+  def show_valid(msg, valid)
+    puts "#{msg}: #{valid ? 'OK' : 'FAIL'}"
+  end
+
+  def dots?(file_path)
+    file_path =~ /#{Regexp.escape(File::SEPARATOR)}\.\.?$/
+  end
+
+  def from_recipes?(rel_name, recipes)
+    return true if recipes.empty?
+    !!recipes.detect { |recipe| rel_name =~ /^#{Regexp.escape(recipe + File::SEPARATOR)}/ }
+  end
+
+end
+
+__END__
+ vim: set ft=ruby
+

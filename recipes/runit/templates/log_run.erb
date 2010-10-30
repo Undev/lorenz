@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# store logs in /storage/log if possible (zombie convention)
+LOG_FOLDER=/var/log/<%= parent.params[:name] %>
+if [ -d /storage ]; then
+    LOG_FOLDER=/storage/log/<%= parent.params[:name] %>
+fi
+
+mkdir -p $LOG_FOLDER
+exec svlogd -tt $LOG_FOLDER

@@ -1,0 +1,62 @@
+%h2 Versions
+- form_tag versions_path do |f|
+  Type: 
+  %br
+  = select_tag "package_type", options_for_select(Lorenz::Node::Base.versions_nodes.map(&:first))
+  %br
+  Package name: 
+  %br
+  = text_field_tag "package_name"
+  %br
+  Variant (optional): 
+  %br
+  = text_field_tag "variant"
+  %br
+  Host (optional): 
+  %br
+  = select_tag "host_name", options_from_collection_for_select(Host.all, "name", "name"), :include_blank => true
+  %br
+  Version:
+  %br
+  = text_field_tag "version"
+  %br
+  = submit_tag "Add version"
+
+%h4 Global
+%ul
+  - @versions.data['packages'].each do |k, v|
+    %li 
+      #{k} — #{v}
+      [
+      =link_to("Remove", remove_versions_path(:package => k), :method => :delete)
+      ]
+
+- @versions.data['variants'].each do |variant_k, variant_v|
+  %h4=variant_k
+  %ul
+    - variant_v.each do |k, v|
+      %li 
+        #{k} — #{v}
+        [
+        =link_to("Remove", remove_versions_path(:variant => variant_k, :package => k), :method => :delete)
+        ]
+      
+- @versions.data['hosts'].each do |host_k, host_v|
+  %h4 Host #{host_k}
+  %ul
+    - (host_v['packages'] || {}).each do |k, v|
+      %li 
+        #{k} — #{v}
+        [
+        =link_to("Remove", remove_versions_path(:host_name => host_k, :package => k), :method => :delete)
+        ]
+  - (host_v['variants'] || {}).each do |variant_k, variant_v|
+    %strong Variant #{variant_k}
+    %ul
+      - variant_v.each do |k, v|
+        %li 
+          #{k} — #{v}
+          [
+          =link_to("Remove", remove_versions_path(:host => host_k, :variant => variant_k, :package => k), :method => :delete)
+          ]
+    

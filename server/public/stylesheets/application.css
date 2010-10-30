@@ -1,0 +1,60 @@
+.hosts_list .host {
+  float:left;
+  width: 200px;
+  border-style:solid;
+  border-width:2px;
+  padding: 5px;
+  text-align: center;
+  color: black;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+}
+
+.host_success {
+  background-color: green;
+}
+
+.host_failed {
+  background-color: red;
+}
+
+.host_undefined {
+  background-color: white;
+}
+
+.host_in_progress {
+  background-color: yellow;
+}
+
+
+.action_success {
+  background-color: #7DF680;
+}
+
+.action_failed {
+  background-color: #99626F;  
+}
+
+.action_rollback {
+  background-color: #FFF587;
+}
+
+.recipes_list {
+  margin: 10px;
+}
+
+.recipes_list .recipes_type {
+ font-size: 1.5em; 
+}
+
+.recipes_list ul {
+/* background-color: #CCFFCC;*/
+ padding: 10px;
+}
+
+.recipes_list li {
+  margin: 2px;
+  padding: 3px;
+  border-style: solid;
+  border-width: 1px;
+}

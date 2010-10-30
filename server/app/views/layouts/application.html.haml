@@ -1,0 +1,28 @@
+!!!
+%html
+  %head
+    %title Lorenz Server  
+    = stylesheet_link_tag :flutie
+    = stylesheet_link_tag 'grid', 'application'
+    
+    = javascript_include_tag 'mc', 'mm', 'ujs'
+    = yield :javascripts
+    = csrf_meta_tag
+    / %script{ :src => 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'}
+    
+  %body
+    .container_12
+      .grid_8
+        %h1#branding
+          %a{ :href => "/" } Lorenz
+      .grid_4
+        %a{ :href => '/recipes/reload' } Reload recipes
+        %a{ :href => '/versions' } Versions
+        %a Users
+        %a Logout
+      .clear
+      - flash.each do |name, msg|
+        .grid_12
+          %div{ :class => name }= msg
+        .clear
+      .grid_12= yield

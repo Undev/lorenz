@@ -1,0 +1,7 @@
+development:
+  port: 8098
+  host: localhost
+
+production:
+  port: 8098
+  host: production.load-balancer.example.com

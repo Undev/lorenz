@@ -1,0 +1,8 @@
+%h2 Hosts list
+
+%p= link_to "Add host", new_host_path
+
+.hosts_list
+  - ordered_hosts(@hosts).each do |host|
+    %a{ :href => host_path(host) }
+      .host{ :class => "host_#{host.state}" }= host.name

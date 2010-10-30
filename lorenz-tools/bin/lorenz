@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'commander/import'
+require 'pp'
+require 'lorenz'
+require 'rainbow'
+require 'open-uri'
+
+Lorenz.load
+
+# :name is optional, otherwise uses the basename of this executable
+program :name, 'Lorenz Tools'
+program :version, '1.0.0'
+program :description, 'Helpers for lorenz deploy tools'
+
+
+# command :states_list do |c|
+#   
+# end
+
+def show_diff(diff)
+  diff.each_with_index do |action, i|
+    color = case action.type
+    when :create
+      :green
+    when :destroy
+      :red
+    when :changed
+      :yellow
+    when :childs_changed
+      :cyan
+    end
+    puts "[#{i + 1}]\t" + action.command.color(color)
+  end
+end
+
+command :state_transition do |c|
+  c.syntax = 'lorenz state_transition [options] <from_state> <to_state>'
+  c.description = 'Show diff between states'
+  c.option '--states STRING', String, 'States location (by default test/states)'
+  c.action do |args, options|
+    require 'lorenz/tools/versions_dsl'
+    options.default :states => 'test/states'
+    DEFAULT_VERSIONS = Lorenz::Tools::VersionsDSL.new.load_from_file(File.join(options.states, '..', 'versions.rb')).versions
+    Lorenz.versions.data = DEFAULT_VERSIONS
+    states = Lorenz::Tools::StatesDSL.new
+    Dir["#{options.states}/**/*"].each do |file_path|
+      states.load_from_file File.expand_path(file_path)
+    end
+    puts "Loaded states: #{states.states.keys * ', '}"
+    
+    show_diff states.diff(args[0], args[1])
+  end
+end
+
+command :host_diff do |c|
+  c.syntax = 'lorenz host_diff [options] <host> <recipes>'
+  c.description = 'Show diff between current host state and new state from recipes'
+  c.option '--server STRING', String, 'Server url (default 127.0.0.1:3000)'
+  c.action do |args, options|
+    options.default :server => '127.0.0.1:3000'
+    host_name = args.shift
+    url = "http://#{options.server}/hosts/#{host_name}.json"
+    puts "Receiving #{url}"
+    host_info = ActiveSupport::JSON.decode(open(url))
+    url = "http://#{options.server}/versions.json"
+    puts "Receiving #{url}"
+    versions = ActiveSupport::JSON.decode(open(url))
+    Lorenz.versions.data = versions
+    host = Lorenz::Host.new :ip => '127.0.0.1', 
+                            :recipes => args.map { |v| Lorenz[v]}, 
+                            :current_states => host_info['current_state'],
+                            :name => host_name,
+                            :attributes => host_info['attributes']
+    host.apply_recipes        
+
+    show_diff host.diff
+  end
+end
+
+

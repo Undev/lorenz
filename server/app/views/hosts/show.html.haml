@@ -1,0 +1,94 @@
+:javascript
+  WEB_SOCKET_SWF_LOCATION = "/WebSocketMain.swf";
+  // Set this to dump debug message from Flash to console.log:
+  WEB_SOCKET_DEBUG = true;
+  var recipesSortables;
+  window.addEvent('domready', function() {
+    function debug(str){ console.log(str); };
+
+    ws = new WebSocket("ws://localhost:4001/");
+    ws.onmessage = function(evt) { 
+      var msg = JSON.decode( evt.data )
+      var li = new Element('li', { 'class': 'action_' + msg[0], 'html': msg[1] })
+      li.inject($("current_run")); 
+    };
+    ws.onclose = function() { debug("socket closed"); };
+    ws.onopen = function() {
+      debug("connected...");
+      ws.send("current_run #{@host.name}");
+    };
+    
+    recipesSortables = new Sortables('#avaliable_recipes ul, #host_recipes ul', {
+      clone: true,
+      revert: { duration: 500, transition: 'elastic:out' },
+      onComplete: function() {
+        new Request( {
+          url: '/hosts/#{@host.key}/set_recipes',
+          data: {
+            ids: recipesSortables.serialize(1)
+          }
+        }).send();
+      }
+    })
+    
+  });
+
+
+%h2= @host.name
+
+%p
+  = link_to 'Current state', current_state_host_path(@host)
+  |
+  = link_to 'New state', new_state_host_path(@host)
+  |
+  = link_to 'Diff', diff_host_path(@host)
+  |
+  = link_to 'Attributes', host_attributes_path(@host)
+  |  
+  = link_to 'Edit', edit_host_path(@host)
+  |
+  = link_to 'Delete', host_path(@host), :method => :delete
+
+
+.grid_5.recipes_list#avaliable_recipes
+  .recipes_type Avaliable recipes
+  %ul
+    - Recipe.all.select { |v| !@host.recipes.include?(v) }.each do |recipe|
+      %li{ :id => recipe.key }
+        #{recipe.name} (#{recipe.key})
+    
+
+.grid_7.recipes_list#host_recipes
+  .recipes_type Host recipes
+  %ul
+    - @host.ordered_recipes.each do |recipe|
+      %li{ :id => recipe.key }
+        #{recipe.name} (#{recipe.key})
+      
+.clear    
+
+/ %p 
+/   - form_tag host_recipes_path(@host) do |f|
+/     = select_tag "recipe_id", options_from_collection_for_select(Recipe.all.select { |v| !@host.recipes.include?(v) }, "key", "title")
+/     = submit_tag "Add recipe"
+/ 
+/ %ul
+/   - @host.recipes.each do |recipe|
+/     %li
+/       = link_to recipe.name, recipe_path(recipe)
+/       [#{link_to('Remove', host_recipe_path(@host, recipe), :method => :delete)}]
+      
+%h3 Current run
+
+#debug
+
+%ul#current_run
+      
+%h3 Last run
+
+%ul
+  - @host.last_run.each do |res, cmd, error|
+    %li{ :class => "action_#{res}"}
+      = cmd
+      - if error
+        (#{error})
