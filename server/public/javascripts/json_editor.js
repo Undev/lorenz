@@ -1,14 +1,14 @@
 /*
-         "version": "1.1", "www": "http://braincast.nl", "date": "april 2008", "description": "Braincast Json Tree object." },
+         "version": "1.1.1", "www": "http://braincast.nl", "date": "jul 2010", "description": "Braincast Json Tree object." },
 */
 var BCJT = function() {
     return {
-        info: { "version": "1.1", "www": "http://braincast.nl", "date": "april 2008", "description": "Braincast Json Tree object." },
+        info: { "version": "1.1.1", "www": "http://braincast.nl", "date": "jul 2010", "description": "Braincast Json Tree object." },
         util: function() {
             function addLoadEvent(func) { var oldonload = window.onload; if (typeof window.onload != 'function') { window.onload = func; } else { window.onload = function() { if (oldonload) { oldonload(); } func(); }; } }
             function addEvent(obj, type, fn) { if (obj.attachEvent) { obj['e' + type + fn] = fn; obj[type + fn] = function() { obj['e' + type + fn](window.event); }; obj.attachEvent('on' + type, obj[type + fn]); } else { obj.addEventListener(type, fn, false); } }
             function getElementById(strid) { return document.getElementById(strid); }
-            return { addLoadEvent: addLoadEvent, addEvent: addEvent, $: getElementById };
+            return { addLoadEvent: addLoadEvent, addEvent: addEvent, $$: getElementById };
         } (),
         tree: function() {
             var treeIndex = 0;
@@ -52,12 +52,12 @@ var BCJT = function() {
                             params.jsonType = strIsTypeOf(typ);
                             params.a = this.ca;
                             params.li = this.cli;
-			    $("autodetect").checked = false;
+			    $$("autodetect").checked = false;
                             this.nodeclick(params);
                         } catch (e) {
                             BCJT.tree.error = "Could not get value!<br />" + e;
-			    $("log").innerHTML = BCJT.tree.error;
-			    $("console").style.display = "block";
+			    $$("log").innerHTML = BCJT.tree.error;
+			    $$("console").style.display = "block";
                         }
                     },
                     makeTree: function(content, dots, inside) {
@@ -151,6 +151,8 @@ var BCJT = function() {
             function processList(ul) {
                 if (!ul.childNodes || ul.childNodes.length === 0) { return; }
                 var childNodesLength = ul.childNodes.length;
+				var folders = [];
+				var items = []
                 for (var itemi = 0; itemi < childNodesLength; itemi++) {
                     var item = ul.childNodes[itemi];
                     if (item.nodeName == "LI") {
@@ -167,11 +169,35 @@ var BCJT = function() {
                             if (item.className === null || item.className === "") { item.className = nodeClosedClass; }
                             if (item.firstChild.nodeName == "#text") { t = t + item.firstChild.nodeValue; item.removeChild(item.firstChild); }
                             s.onclick = treeNodeOnclick;
-                        } else { item.className = nodeBulletClass; s.onclick = retFalse; }
+							folders.push(item);
+                        } else { 
+							item.className = nodeBulletClass;
+							s.onclick = retFalse; 
+							items.push(item);
+						}
                         s.appendChild(document.createTextNode(t));
                         item.insertBefore(s, item.firstChild);
                     }
                 }
+				// sort
+				var sortNodes = function(a, b)
+				{
+					var ta = jQuery(a).text();
+					var tb = jQuery(b).text();
+					if (ta == tb) return 0;
+					return (ta < tb) ? -1 : 1;
+				};
+				folders.sort(sortNodes);
+				items.sort(sortNodes);
+				for (var i = 0; i < items.length; i++)
+				{
+					folders.push(items[i]);
+				}
+				items = null;
+				for (var i = 0; i < folders.length; i++)
+				{
+					ul.appendChild(folders[i]);
+				}
             }
             // Performs 3 functions:
             // a) Expand all nodes
@@ -232,7 +258,7 @@ var BCJT = function() {
         } ()
     };
 } ();
-if ( typeof $ == "undefined" ) var $ = BCJT.util.$;
+if ( typeof $$ == "undefined" ) var $$ = BCJT.util.$$;
 var addE = BCJT.util.addEvent;
 
 var BCJTE = function(){
@@ -259,15 +285,15 @@ var BCJTE = function(){
 				this.cli = null;
 				
 				//clear boxes
-				$("jsonname").value = "";
-				$("jsonvalue").value = "";
-				$("jsonpath").innerHTML = "";
-				$("jsontypes").selectedIndex= 0;
-				$("jsonnameinput").style.display = "none";
-				$("addbutton").style.display = "none";
-				$("savebutton").style.display = "inline";
-				$("savedstatus").style.display = "none";
-				$("deletedstatus").style.display = "block";
+				$$("jsonname").value = "";
+				$$("jsonvalue").value = "";
+				$$("jsonpath").innerHTML = "";
+				$$("jsontypes").selectedIndex= 0;
+				$$("jsonnameinput").style.display = "none";
+				$$("addbutton").style.display = "none";
+				$$("savebutton").style.display = "inline";
+				$$("savedstatus").style.display = "none";
+				$$("deletedstatus").style.display = "block";
 			}
 			
 			/* expanding fails because the tree is being reindexed during reload... the old id probably doens't exist anymore */
@@ -284,8 +310,8 @@ var BCJTE = function(){
 			var cid = this.cli ? this.cli.id : null;
 			var nObj = null;
 			try {
-        		$("jsonmode").innerHTML = "Mode: " + ($("autodetect").checked ? "Automatic" : "Standard");
-        		$("jsonname").readonly=null;
+        		$$("jsonmode").innerHTML = "Mode: " + ($$("autodetect").checked ? "Automatic" : "Standard");
+        		$$("jsonname").readonly=null;
 
 			//what type are we creating?
 			if (t === undefined){ t = this.strIsTypeOf(this.isTypeOf(nv));}
@@ -306,8 +332,8 @@ var BCJTE = function(){
 				default: throw "Unable to add a child to type: " + objType;
 			}
 		} catch (e) {
-			$("log").innerHTML = e;
-			$("console").style.display = "block";
+			$$("log").innerHTML = e;
+			$$("console").style.display = "block";
 		}
 		this.reloadTree();
 			if (this.mktree){
@@ -317,16 +343,16 @@ var BCJTE = function(){
 				this.cli = null;
 				
 				//clear boxes
-				$("jsonname").value = "";
-				$("jsonvalue").value = "";
-				$("jsontypes").selectedIndex= 0;
-				$("jsonpath").innerHTML = "";
-				$("jsonmode").innerHTML = "";
-				$("jsonnameinput").style.display = "none";
-				$("addbutton").style.display = "none";
-				$("savebutton").style.display = "inline";
-				$("savedstatus").style.display = "block";
-				$("deletedstatus").style.display = "none";
+				$$("jsonname").value = "";
+				$$("jsonvalue").value = "";
+				$$("jsontypes").selectedIndex= 0;
+				$$("jsonpath").innerHTML = "";
+				$$("jsonmode").innerHTML = "";
+				$$("jsonnameinput").style.display = "none";
+				$$("addbutton").style.display = "none";
+				$$("savebutton").style.display = "inline";
+				$$("savedstatus").style.display = "block";
+				$$("deletedstatus").style.display = "none";
 			}
 
 			/* expanding fails because the tree is being reindexed during reload... the old id probably doens't exist anymore */
@@ -377,19 +403,19 @@ var BCJTE = function(){
 							this.cli = null;
 						}
 						//clear boxes
-						$("jsonname").value = "";
-						$("jsonvalue").value = "";
-						$("jsontypes").selectedIndex= 0;
-						$("jsonpath").innerHTML = "";
-						$("jsonnameinput").style.display = "none";
-						$("addbutton").style.display = "none";
-						$("savebutton").style.display = "inline";
+						$$("jsonname").value = "";
+						$$("jsonvalue").value = "";
+						$$("jsontypes").selectedIndex= 0;
+						$$("jsonpath").innerHTML = "";
+						$$("jsonnameinput").style.display = "none";
+						$$("addbutton").style.display = "none";
+						$$("savebutton").style.display = "inline";
 					}
 				}						
-				$("savedstatus").style.display = "block";
+				$$("savedstatus").style.display = "block";
 			}catch(e){
-				$("log").innerHTML = "There's an error in your value!<br />" + e;
-				$("console").style.display = "block";
+				$$("log").innerHTML = "There's an error in your value!<br />" + e;
+				$$("console").style.display = "block";
 			}
 		}
 	};
@@ -487,26 +513,26 @@ var BCJTEP = function(){
       }
 		},
 		build: function(){
-			var jsonstr = $("jsonstr").value;
+			var jsonstr = $$("jsonstr").value;
 			if (jsonstr == "") return false;
 			var r = BCJT.tree.init(jsonstr, "div1", {"rootNode": "json", "index": 0,"newtree":false, "nodeclick": function(p){
 			        //make sure the add dialogs are not shown
-				$("jsonname").value = "";
-				$("jsonvalue").value = "";
-				$("jsonpath").innerHTML = "";
-				$("jsonmode").innerHTML = "";
-				$("jsontypes").selectedIndex= 0;
-				$("jsonnameinput").style.display = "none";
-				$("addbutton").style.display = "none";
-				$("savebutton").style.display = "inline";
-				$("savedstatus").style.display = "none";
-				$("deletedstatus").style.display = "none";
+				$$("jsonname").value = "";
+				$$("jsonvalue").value = "";
+				$$("jsonpath").innerHTML = "";
+				$$("jsonmode").innerHTML = "";
+				$$("jsontypes").selectedIndex= 0;
+				$$("jsonnameinput").style.display = "none";
+				$$("addbutton").style.display = "none";
+				$$("savebutton").style.display = "inline";
+				$$("savedstatus").style.display = "none";
+				$$("deletedstatus").style.display = "none";
 				
 				if ("json" == unescape(p.jsonPath)){
 					tabber1.show(3);
-					$("jsonstr").value = p.jsonValue;
+					$$("jsonstr").value = p.jsonValue;
 				}else{
-					if ($("tab2").style.display != "block"){tabber1.show(2);}
+					if ($$("tab2").style.display != "block"){tabber1.show(2);}
 					/*
 					alert("type: " + p.jsonType + "\n" +
 					  "value: " + p.jsonValue + "\n" +
@@ -515,20 +541,20 @@ var BCJTEP = function(){
 					  );*/
 					  var jsonmode = "Standard";
 					  if (p.jsonType == 'object' || p.jsonType == 'array') {
-					     $("jsonvalue").value = p.jsonValue;
+					     $$("jsonvalue").value = p.jsonValue;
 					     jsonmode = "<b>NATIVE JSON</b>";
 					  } else {
-					     $("jsonvalue").value = BCJTEP.stripslashes(p.jsonValue);
+					     $$("jsonvalue").value = BCJTEP.stripslashes(p.jsonValue);
 					  }
-					  $("jsonpath").innerHTML = "Path: " + unescape(p.jsonPath);
-            $("jsonmode").innerHTML = "Mode: " + jsonmode;
-					  selectType($("jsontypes"),p.jsonType); 
+					  $$("jsonpath").innerHTML = "Path: " + unescape(p.jsonPath);
+            $$("jsonmode").innerHTML = "Mode: " + jsonmode;
+					  selectType($$("jsontypes"),p.jsonType); 
 				}
 			}});
 			if (r){return r;
 			}else{
-				$("log").innerHTML = BCJT.tree.error;
-				$("console").style.display = "block";
+				$$("log").innerHTML = BCJT.tree.error;
+				$$("console").style.display = "block";
 				return false;
 			}
 		},	
@@ -537,12 +563,12 @@ var BCJTEP = function(){
 		uType: determineUserType,
 		selectType: selectType,
 		writeResults: function(){
-			var results = BCJT.tree.forest[0].search($("keyword").value);
-			var res = $("results");
+			var results = BCJT.tree.forest[0].search($$("keyword").value);
+			var res = $$("results");
 			res.innerHTML = "";
 			var strtable = "<table width=\"100%\"><tbody>";
 			for (var i=0; i< results.length; i++){
-				strtable += "<tr><td width=\"15\"><img src=\"/images/" + results[i].where + ".gif\" title=\"Result found in the "+results[i].where+"\" border=\"0\" /></td>";
+				strtable += "<tr><td width=\"15\"><img src=\"/images/jsonedit/" + results[i].where + ".gif\" title=\"Result found in the "+results[i].where+"\" border=\"0\" /></td>";
 				strtable += "<td><a href=\"#\" onclick=\"BCJT.mktree.expandToItem('tree0', '"+results[i].li+"');BCJT.tree.forest[0].getNodeValue('"+results[i].path+"', '"+results[i].a+"');tabber1.show(2);return false\">" + results[i].value + "</td>";
 				strtable += "<td class=\"path\">" + unescape(results[i].path) + "</td></tr>";
 			}
@@ -557,37 +583,37 @@ BCJTEP.prototype = function(){
 	BCJT.util.addLoadEvent(function(){
 		tabber1 = new Yetii({id: 'tab-container-1'});
 		tabber2 = new Yetii({id: 'tab-container-2',tabclass: 'tabn'});
-		addE($("buildbutton"), "click", function(){
+		addE($$("buildbutton"), "click", function(){
 			if (BCJTEP.build()){
-				$("results").innerHTML = "&nbsp;";
-				$("sourcetab").className = "show";
-				$("editortab").className = "show";
-				$("searchtab").className = "show";
+				$$("results").innerHTML = "&nbsp;";
+				$$("sourcetab").className = "show";
+				$$("editortab").className = "show";
+				$$("searchtab").className = "show";
 			}
 		})
 		
-		var jsontypes = $("jsontypes");
+		var jsontypes = $$("jsontypes");
 		var j = BCJTE.objectTypes.length;
 		for (var i = 0; i<j; i++){BCJTE.addOptions(jsontypes, i ,BCJTE.objectTypes[i]);}
 		
-		addE($("savebutton"), "click", function(){
-				if ($("autodetect").checked){
-					BCJTEP.selectType( $("jsontypes"), BCJTEP.uType($("jsonvalue").value) );
+		addE($$("savebutton"), "click", function(){
+				if ($$("autodetect").checked){
+					BCJTEP.selectType( $$("jsontypes"), BCJTEP.uType($$("jsonvalue").value) );
 				}
 				var obj = BCJT.tree.forest[0];				
-				var listtype = $("jsontypes").options[$("jsontypes").selectedIndex].text;
-				obj.save($("jsonvalue").value,listtype);
+				var listtype = $$("jsontypes").options[$$("jsontypes").selectedIndex].text;
+				obj.save($$("jsonvalue").value,listtype);
 			});
 		
-		addE($("addbutton"), "click", function(){
-				if ($("autodetect").checked){
-					BCJTEP.selectType( $("jsontypes"), BCJTEP.uType($("jsonvalue").value) );
+		addE($$("addbutton"), "click", function(){
+				if ($$("autodetect").checked){
+					BCJTEP.selectType( $$("jsontypes"), BCJTEP.uType($$("jsonvalue").value) );
 				}
 
 				var obj = BCJT.tree.forest[0];
-				var listtype = $("jsontypes").options[$("jsontypes").selectedIndex].text;
+				var listtype = $$("jsontypes").options[$$("jsontypes").selectedIndex].text;
 
-				obj.addNode($("jsonname").value,$("jsonvalue").value,listtype);
+				obj.addNode($$("jsonname").value,$$("jsonvalue").value,listtype);
 			});
 		/*
 		addE($("jsonvalue"), "keydown", function(e){
@@ -597,78 +623,78 @@ BCJTEP.prototype = function(){
 			}
 		});*/
 		
-		addE($("refresh"), "mousedown", function(){
-			$("refresh").className = "button buttondown";
-			$("refresh").style.backgroundPosition = "right bottom";
+		addE($$("refresh"), "mousedown", function(){
+			$$("refresh").className = "button buttondown";
+			$$("refresh").style.backgroundPosition = "right bottom";
 			if (BCJT.tree.forest[0]) BCJT.tree.forest[0].getNodeValue('json', 'a0');
 		});
-		addE($("refresh"), "mouseup", function(){
-			$("refresh").className = "button";
-			$("refresh").style.backgroundPosition = "center center";
+		addE($$("refresh"), "mouseup", function(){
+			$$("refresh").className = "button";
+			$$("refresh").style.backgroundPosition = "center center";
 		});
 
 		
-		addE($("add"), "mousedown", function(){
-			$("add").className = "button buttondown";
-			$("add").style.backgroundPosition = "right bottom";
-			$("savebutton").style.display = "none";
-			$("addbutton").style.display = "inline";
-			$("jsonnameinput").style.display = "inline";
-			$("jsonvalue").value = "";
-			$("jsontypes").selectedIndex = 0;
+		addE($$("add"), "mousedown", function(){
+			$$("add").className = "button buttondown";
+			$$("add").style.backgroundPosition = "right bottom";
+			$$("savebutton").style.display = "none";
+			$$("addbutton").style.display = "inline";
+			$$("jsonnameinput").style.display = "inline";
+			$$("jsonvalue").value = "";
+			$$("jsontypes").selectedIndex = 0;
 			
 			var objTree = BCJT.tree.forest[0];	
 			var obj = eval(BCJTEP.escapeslashes(objTree.cp));
 			var objType = objTree.strIsTypeOf(objTree.isTypeOf(obj));
 
 			var jsonmode = "Automatic";
-			$("autodetect").checked = true;
-			$("jsonmode").innerHTML = "Mode: " + jsonmode;
+			$$("autodetect").checked = true;
+			$$("jsonmode").innerHTML = "Mode: " + jsonmode;
 
 			if (objType == "array") {
-			  $("jsonname").value = "Array Index";
-			  $("jsonname").disabled = true;
+			  $$("jsonname").value = "Array Index";
+			  $$("jsonname").disabled = true;
 			} else {
-			  $("jsonname").value = "";
-			  $("jsonname").disabled = false;
+			  $$("jsonname").value = "";
+			  $$("jsonname").disabled = false;
 			}
 
 		});
-		addE($("add"), "mouseup", function(){
-			$("add").className = "button";
-			$("add").style.backgroundPosition = "center center";
+		addE($$("add"), "mouseup", function(){
+			$$("add").className = "button";
+			$$("add").style.backgroundPosition = "center center";
 		});	
 		
-    addE($("jsontypes"), "change", function(){
-				var listtype = $("jsontypes").options[$("jsontypes").selectedIndex].text;
-				var jsonmode = $("autodetect").checked ? "Automatic" : "Standard";
+    addE($$("jsontypes"), "change", function(){
+				var listtype = $$("jsontypes").options[$$("jsontypes").selectedIndex].text;
+				var jsonmode = $$("autodetect").checked ? "Automatic" : "Standard";
         if (listtype == "object" || listtype == "array") {
 				  jsonmode = "<b>NATIVE JSON</b>";
         }
-        $("jsonmode").innerHTML = "Mode: " + jsonmode;
+        $$("jsonmode").innerHTML = "Mode: " + jsonmode;
 
 			});
 		
-		addE($("delete"), "mousedown", function(){
-			$("delete").className = "button buttondown";
-			$("delete").style.backgroundPosition = "right bottom";
+		addE($$("delete"), "mousedown", function(){
+			$$("delete").className = "button buttondown";
+			$$("delete").style.backgroundPosition = "right bottom";
 			if (confirm("Are you sure you want to delete this attribute?")) BCJT.tree.forest[0].deleteNode();
 		});
-		addE($("delete"), "mouseup", function(){
-			$("delete").className = "button";
-			$("delete").style.backgroundPosition = "center center";
+		addE($$("delete"), "mouseup", function(){
+			$$("delete").className = "button";
+			$$("delete").style.backgroundPosition = "center center";
 		});
 		
-		addE($("search"), "click", function(){
+		addE($$("search"), "click", function(){
 			BCJTEP.writeResults();
 		});
-		addE($("keyword"), "keydown", function(e){
+		addE($$("keyword"), "keydown", function(e){
 			if (e.keyCode == 13){
 				BCJTEP.writeResults();
 			}
 		});
-		addE($("consolebar"), "click", function(){
-			$("console").style.display = "none";
+		addE($$("consolebar"), "click", function(){
+			$$("console").style.display = "none";
 			return false;
 		});
 	});
