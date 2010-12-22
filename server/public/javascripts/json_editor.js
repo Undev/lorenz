@@ -1,6 +1,7 @@
 /*
          "version": "1.1.1", "www": "http://braincast.nl", "date": "jul 2010", "description": "Braincast Json Tree object." },
 */
+jQuery.noConflict();
 var BCJT = function() {
     return {
         info: { "version": "1.1.1", "www": "http://braincast.nl", "date": "jul 2010", "description": "Braincast Json Tree object." },
